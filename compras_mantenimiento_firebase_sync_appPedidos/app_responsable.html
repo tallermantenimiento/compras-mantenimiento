@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Compras · Responsable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="manifest_responsable.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+    body{background:#f4f5f7;color:#111827;}
+    .app-shell{min-height:100vh;display:flex;flex-direction:column;}
+    header.app-header{padding:14px 16px 10px;background:#111;color:#fff;display:flex;justify-content:space-between;gap:10px;}
+    .app-title-block{display:flex;flex-direction:column;gap:2px;}
+    .app-title{font-size:16px;font-weight:600;}
+    .app-sub{font-size:12px;color:#d1d5db;}
+    .pill-sector{background:#f3f4f6;color:#111827;border-radius:999px;padding:6px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;max-width:180px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    main{flex:1;padding:12px 12px 18px;}
+    .hint{font-size:12px;color:#6b7280;margin-bottom:8px;}
+    .section-title{font-size:13px;font-weight:600;margin:8px 2px 4px;}
+    .cards{display:flex;flex-direction:column;gap:10px;}
+    .card{background:#fff;border-radius:18px;padding:10px 12px;box-shadow:0 10px 25px rgba(15,23,42,.08);border:1px solid #dde1e7;display:flex;flex-direction:column;gap:6px;}
+    .card-header-line{display:flex;justify-content:space-between;gap:8px;}
+    .card-ref{font-size:14px;font-weight:600;}
+    .card-date{font-size:11px;color:#6b7280;}
+    .card-mat{font-size:13px;}
+    .status-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px;}
+    .status-pill{font-size:11px;padding:4px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;}
+    .pill-pendiente{background:#fff4e0;color:#92400e;}
+    .pill-recibido{background:#e4fbf4;color:#065f46;}
+    .pill-entregado{background:#e0ecff;color:#1d4ed8;}
+    .btn-recibido{border-radius:999px;border:1px solid #dde1e7;padding:5px 12px;font-size:12px;background:#f9fafb;display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+    .btn-recibido[data-on="1"]{background:#00c18c;color:#fff;border-color:#00c18c;}
+    .btn-recibido:active{transform:scale(.97);}
+    .empty{font-size:13px;color:#6b7280;padding:10px 4px;text-align:center;}
+    .collapsible{margin-top:10px;border-radius:18px;overflow:hidden;border:1px solid #dde1e7;background:#f9fafb;}
+    .collapsible-header{padding:8px 10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;}
+    .collapsible-header small{font-size:11px;color:#6b7280;}
+    .collapsible-body{max-height:0;overflow:hidden;transition:max-height .18s ease-out;padding:0 10px;}
+    .collapsible.open .collapsible-body{padding:0 10px 8px;max-height:400px;}
+    footer{font-size:11px;color:#6b7280;padding:6px 10px 10px;text-align:center;}
+    .card-new{margin-top:6px;}
+    .new-form{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+    .input-line,.input-area{width:100%;border-radius:10px;border:1px solid #d1d5db;padding:6px 8px;font-size:13px;background:#f9fafb;}
+    .input-area{resize:vertical;min-height:52px;}
+    .btn-add{align-self:flex-end;margin-top:2px;border-radius:999px;border:1px solid #111827;padding:6px 14px;font-size:12px;background:#111827;color:#fff;cursor:pointer;}
+    .btn-add:active{transform:scale(.97);}
+
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-title-block">
+      <div class="app-title">Compras · Responsable</div>
+      <div class="app-sub">Marca Recibido cuando el material llegue a tu zona.</div>
+    </div>
+    <div class="pill-sector" id="pillSector">Sector: ...</div>
+  </header>
+  <main>
+    <div class="hint" id="hint"></div>
+    <div class="card card-new">
+      <div class="section-title">Nuevo pedido</div>
+      <div class="new-form">
+        <input id="inpRef" type="text" placeholder="Referencia" class="input-line">
+        <textarea id="inpMat" rows="2" placeholder="Material solicitado" class="input-area"></textarea>
+        <button id="btnAddPedido" class="btn-add">Añadir pedido</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Pedidos pendientes</div>
+      <div class="cards" id="listaPendientes"></div>
+    </div>
+    <div class="collapsible" id="blocRecibidos">
+      <div class="collapsible-header" id="toggleRecibidos">
+        <span>Pedidos recibidos</span>
+        <small id="recibidosCount">(0)</small>
+      </div>
+      <div class="collapsible-body">
+        <div class="cards" id="listaRecibidos"></div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    El responsable puede instalar esta app o añadirla a la pantalla de inicio. El sector queda guardado en este dispositivo.
+  </footer>
+</div>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var slug = (params.get('sector') || '').trim();
+
+  // Recordar sector asignado en este dispositivo
+  if (slug) {
+    try { localStorage.setItem('responsable_sector_asignado', slug); } catch(e) {}
+  } else {
+    try { slug = localStorage.getItem('responsable_sector_asignado') || ''; } catch(e) { slug = ''; }
+  }
+
+  var storageKey = slug ? 'ldh_compras_' + slug : null;
+
+var pillSector = document.getElementById('pillSector');
+  var hintEl = document.getElementById('hint');
+  var listaPend = document.getElementById('listaPendientes');
+  var listaRec = document.getElementById('listaRecibidos');
+  var blocRec = document.getElementById('blocRecibidos');
+  var recCount = document.getElementById('recibidosCount');
+  var refInput = document.getElementById('inpRef');
+  var matInput = document.getElementById('inpMat');
+  var btnAdd = document.getElementById('btnAddPedido');
+
+  if (!slug || !storageKey) {
+    pillSector.textContent = 'Sector: (no indicado)';
+    hintEl.textContent = 'Este enlace no incluye sector y tampoco hay uno guardado en este dispositivo. Pide al responsable de compras que te envíe de nuevo el enlace.';
+    listaPend.innerHTML = '<div class="empty">No se ha indicado ningún sector.</div>';
+    blocRec.style.display = 'none';
+    return;
+  }
+
+  function statusInfo(p) {
+    if (p.entregado) return {text:'Entregado', cls:'pill-entregado'};
+    if (p.recibido)  return {text:'Recibido',  cls:'pill-recibido'};
+    if (p.pedido)    return {text:'Pedido',    cls:'pill-pendiente'};
+    return {text:'Pendiente', cls:'pill-pendiente'};
+  }
+
+  function renderFromData(data) {
+    var pendHtml = '';
+    var recHtml  = '';
+    var countRec = 0;
+
+    (data || []).forEach(function(p, i) {
+      var st = statusInfo(p);
+      var esRec = !!p.entregado;
+      var target = esRec ? 'rec' : 'pend';
+
+      var card = '';
+      card += '<div class="card">';
+      card += ' <div class="card-header-line">';
+      card += '  <div>';
+      card += '    <div class="card-ref">' + (p.ref || '(sin referencia)') + '</div>';
+      card += '    <div class="card-date">' + (p.date || '') + '</div>';
+      card += '  </div>';
+      card += ' </div>';
+      card += ' <div class="card-mat">' + (p.mat || '') + '</div>';
+      card += ' <div class="status-row">';
+      card += '   <div class="status-pill ' + st.cls + '"><span>' + st.text + '</span></div>';
+      var onAttr = esRec ? ' data-on="1"' : '';
+      card += '   <button class="btn-recibido" data-index="' + i + '"' + onAttr + '><span>✔</span><span>Recibido</span></button>';
+      card += ' </div>';
+      card += '</div>';
+
+      if (target === 'rec') { recHtml += card; countRec++; }
+      else                 { pendHtml += card; }
+    });
+
+    if (!pendHtml) pendHtml = '<div class="empty">Sin pedidos pendientes.</div>';
+    if (!recHtml) {
+      blocRec.style.display = 'none';
+    } else {
+      blocRec.style.display = 'block';
+    }
+    listaPend.innerHTML = pendHtml;
+    listaRec.innerHTML  = recHtml;
+    recCount.textContent = '(' + countRec + ')';
+  }
+
+  function addPedido() {
+    if (!refInput || !matInput) return;
+    var ref = (refInput.value || '').trim();
+    var mat = (matInput.value || '').trim();
+    if (!ref && !mat) {
+      hintEl.textContent = 'Escribe referencia o material antes de añadir.';
+      return;
+    }
+    if (typeof db === 'undefined') {
+      hintEl.textContent = 'Error: base de datos no disponible.';
+      return;
+    }
+    var docRef = db.collection('compras').doc(storageKey);
+    docRef.get().then(function(doc) {
+      var d = doc.exists ? (doc.data() || {}) : {};
+      var arr = Array.isArray(d.purchases) ? d.purchases.slice() : [];
+      var now = new Date().toLocaleString('es-ES');
+      arr.push({
+        date: now,
+        ref: ref,
+        mat: mat,
+        pedido: false,
+        recibido: false,
+        entregado: false,
+        hidden: false,
+        deliveredAt: null
+      });
+      d.purchases = arr;
+      if (!d.nombre) {
+        d.nombre = slug.toUpperCase();
+      }
+      return docRef.set(d);
+    }).then(function() {
+      refInput.value = '';
+      matInput.value = '';
+      hintEl.textContent = 'Pedido añadido correctamente.';
+    }).catch(function(err) {
+      console.warn('Error añadiendo pedido', err);
+      hintEl.textContent = 'No se ha podido guardar el pedido (error de conexión).';
+    });
+  }
+
+  function loadData() {
+    if (typeof db === 'undefined') {
+      hintEl.textContent = 'Error: Firestore no está configurado (falta firebase-config.js).';
+      return;
+    }
+    db.collection('compras').doc(storageKey).onSnapshot(function(doc) {
+      if (!doc.exists) {
+        pillSector.textContent = 'Sector: ' + slug.toUpperCase();
+        hintEl.textContent = 'Todavía no hay compras para este sector.';
+        renderFromData([]);
+        return;
+      }
+      var data = doc.data() || {};
+      var nombre = (data.nombre || slug || '').toString().toUpperCase();
+      pillSector.textContent = 'Sector: ' + nombre;
+      hintEl.textContent = 'Solo se muestran los pedidos de tu sector. Marca Recibido cuando el material llegue.';
+      renderFromData(Array.isArray(data.purchases) ? data.purchases : []);
+    }, function(err) {
+      hintEl.textContent = 'No se han podido cargar las compras (error conexión).';
+      console.warn('Error onSnapshot responsable', err);
+    });
+  }
+
+  function toggleRecibido(idx) {
+    if (typeof db === 'undefined') return;
+    var docRef = db.collection('compras').doc(storageKey);
+    docRef.get().then(function(doc) {
+      if (!doc.exists) return;
+      var d = doc.data() || {};
+      var arr = Array.isArray(d.purchases) ? d.purchases.slice() : [];
+      if (!arr[idx]) return;
+      arr[idx].entregado = !arr[idx].entregado;
+      if (arr[idx].entregado) {
+        arr[idx].pedido = true;
+        arr[idx].recibido = true;
+        try { arr[idx].deliveredAt = new Date().toLocaleString('es-ES'); } catch(e) {}
+      } else {
+        arr[idx].deliveredAt = null;
+      }
+      d.purchases = arr;
+      docRef.set(d).catch(function(err){ console.warn('Error al guardar recibido', err); });
+    }).catch(function(err){
+      console.warn('Error al leer para toggle', err);
+    });
+  }
+
+  document.addEventListener('click', function(ev) {
+    var btn = ev.target.closest('.btn-recibido');
+    if (!btn) return;
+    var idx = parseInt(btn.getAttribute('data-index'), 10);
+    if (isNaN(idx)) return;
+    toggleRecibido(idx);
+  });
+
+  if (btnAdd) {
+    btnAdd.addEventListener('click', function(ev){
+      ev.preventDefault();
+      addPedido();
+    });
+  }
+
+  document.getElementById('toggleRecibidos').addEventListener('click', function() {
+    blocRec.classList.toggle('open');
+  });
+
+  loadData();
+})();
+</script>
+</body>
+</html>
