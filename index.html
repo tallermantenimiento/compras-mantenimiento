@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Compras mantenimiento · Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="./sklum_icon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="./sklum_icon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="./sklum_icon.ico">
+  <style>
+    :root{
+      --bg:#f3f4f6; --card:#ffffff; --border:#d1d5db; --accent:#111827;
+      --accent-soft:#e5e7eb; --text:#111827; --muted:#6b7280; --danger:#b91c1c;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+    body{background:var(--bg);color:var(--text);}
+    
+    header{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);background:#111827;color:#fff;}
+    header img{width:40px;height:40px;border-radius:10px;background:#fff;padding:4px;object-fit:contain;}
+    header .title{display:flex;flex-direction:column; flex:1;}
+    header .title span:first-child{font-size:15px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+    header .title span:last-child{font-size:12px;color:#9ca3af;}
+    
+    .btn-master-lock { background: #374151; border: 1px solid #4b5563; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;}
+    .btn-master-lock:hover { background: #4b5563; }
+
+    main{padding:14px 18px 20px;max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+    .panes{display:flex;flex-wrap:wrap;gap:14px;}
+    .layout-row{display:flex;gap:14px;align-items:flex-start;}
+    .layout-main{flex:3;display:flex;flex-direction:column;gap:14px;min-width: 0;}
+    .panel-empresas{flex:1; max-width:500px;}
+    
+    @media (max-width:1100px){ .layout-row{flex-direction:column;} .panel-empresas{max-width:100%;} }
+    
+    .tabla-empresas{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+    .tabla-empresas th,.tabla-empresas td{border-bottom:1px solid var(--border);padding:4px 6px;text-align:left;}
+    .tabla-empresas th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6b7280;background:#f9fafb;}
+    .tabla-empresas td{font-size:11px;color:#111827;}
+    .panel{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:12px 14px;box-shadow:0 8px 18px rgba(15,23,42,0.04);flex:1 1 380px;}
+    .panel h2{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+    .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--muted);}
+    .badge.alert{background:#fee2e2;color:#b91c1c;}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+    .field{display:flex;flex-direction:column;gap:2px;min-width:200px;}
+    label{font-size:12px;color:var(--muted);}
+    input[type="text"], textarea{padding:6px 9px;border-radius:999px;border:1px solid var(--border);font-size:13px;}
+    textarea { border-radius: 6px !important; }
+    button{cursor:pointer;}
+    .btn-main{padding:7px 14px;border-radius:999px;border:none;font-size:12px;background:var(--accent);color:#fff;}
+    .btn-main:active{transform:scale(.97);}
+    .btn-sm{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+    .btn-sm.primary{background:#111827;color:#fff;border-color:#111827;}
+    .btn-sm.danger{background:#fef2f2;color:#b91c1c;border-color:#fecaca;}
+    .btn-sm.copy{background:#f3f4ff;border-color:#c7d2fe;color:#111827;}
+    .btn-sm.key{background:#fffbeb;border-color:#fcd34d;color:#92400e;}
+    .btn-sm:active{transform:scale(.96);}
+    .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+    
+    table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+    .tabla-pedidos-activos{table-layout:fixed; width:100%;}
+    .tabla-pedidos-activos th:nth-child(1){width:90px;}
+    .tabla-pedidos-activos th:nth-child(2){width:80px;}
+    .tabla-pedidos-activos th:nth-child(3){width:200px;}
+    .tabla-pedidos-activos th:nth-child(4){width:130px;}
+    .tabla-pedidos-activos th:nth-child(5){width:100px;}
+    .tabla-pedidos-activos th:nth-child(6){width:100px;}
+    .tabla-pedidos-activos th:nth-child(7){width:140px;}
+
+    /* ==========================================================================
+       ESTILOS DE IMPRESIÓN
+       ========================================================================== */
+    @media print {
+      @page { margin: 1cm; size: A4; }
+      body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body > * { display: none !important; }
+#print-area { display: block !important; }
+
+      #print-area, #print-area * { visibility: visible !important; }
+      
+      #print-area {
+        position: absolute;
+        top: 0; left: 0; width: 100%;
+        background: white;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        color: #111;
+        padding: 20px;
+      }
+
+      /* CABECERA */
+      .print-header { 
+        display: flex !important; 
+        justify-content: space-between; 
+        align-items: flex-end; 
+        margin-bottom: 30px; 
+      }
+      
+      .print-logo-container {
+        width: 80px; 
+        height: 80px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+      }
+      .print-logo-container img { 
+        width: 65px; 
+        height: auto; 
+        object-fit: contain; 
+      }
+
+      .print-titles { 
+        text-align: right; 
+      }
+      .print-titles h1 { 
+        font-size: 24px; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        margin: 0; 
+        color: #333; 
+        letter-spacing: 1px; 
+      }
+      .print-titles h2 { 
+        font-size: 16px; 
+        font-weight: 400; 
+        color: #666; 
+        margin: 6px 0 0 0; 
+      }
+      
+      .print-divider-thick { 
+        border-bottom: 4px solid #000; 
+        margin: 40px 0 30px 0; 
+      }
+
+      /* TABLA */
+      .print-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-bottom: 30px; 
+        font-size: 13px; 
+      }
+      .print-table thead th { 
+        background-color: #111827 !important; 
+        color: #fff !important; 
+        text-transform: uppercase; 
+        padding: 12px 15px; 
+        font-weight: 600; 
+        text-align: left; 
+        letter-spacing: 1px;
+      }
+      .print-table thead th:last-child { text-align: right; }
+      .print-table tbody tr:nth-child(odd) {
+        background-color: #fafafa;
+      }
+      .print-table tbody tr:nth-child(even) { background-color: #fff !important; }
+      .print-table td {
+        padding: 6px 12px;
+        font-size: 12px;
+        vertical-align: middle;
+      }
+      .print-table td:first-child { 
+        font-weight: 600; 
+        text-transform: uppercase; 
+        color: #000; 
+      }
+      .print-table td:last-child { 
+        text-align: right; 
+        font-variant-numeric: tabular-nums; 
+      }
+
+      /* CAJA TOTAL */
+      .print-total-box {
+        background-color: #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin: 20px 0 20px 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 35px;
+        font-size: 14px;
+        text-align: right;
+      }
+      .print-total-label {
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #4b5563;
+      }
+      .print-total-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #000;
+      }
+
+      /* SEPARADOR GRÁFICO */
+      .print-chart-separator {
+        margin: 60px 0 30px 0;
+        border-top: 1px dashed #ccc;
+        position: relative;
+        text-align: center;
+      }
+      .print-chart-title {
+        background: #fff;
+        padding: 0 20px;
+        position: relative;
+        top: -12px;
+        color: #9ca3af;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      /* GRÁFICO CENTRADO */
+      .print-chart-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin: 10px 0 5px 0;
+      }
+      .print-chart-wrapper img {
+        max-width: 190px;
+        max-height: 190px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      /* LEYENDA CENTRADA */
+      .print-legend {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+      }
+      .print-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .print-legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+      }
+
+      /* FOOTER */
+      .print-footer {
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 10px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+      }
+    }
+    .print-only { display: none; }
+
+    .empresas-layout{align-items:flex-start;} .empresas-tabla{flex:1 1 220px;} .empresas-chart{flex:0 0 220px;display:flex;justify-content:center;align-items:center;}
+    .empresas-chart canvas{max-width:200px;max-height:200px;}
+    @media(max-width:1100px){ .empresas-layout{flex-direction:column;} .empresas-chart{margin-top:10px;} }
+
+    .custom-legend { margin-top: 15px; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #374151; padding: 2px 0; border-bottom: 1px solid transparent; }
+    .legend-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .legend-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; flex: 1; }
+    .legend-val { color: #6b7280; font-variant-numeric: tabular-nums; }
+
+    #masterLockScreen {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: #111827; z-index: 99999; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; padding: 20px; text-align: center;
+    }
+    #masterLockScreen input {
+      padding: 12px; font-size: 16px; border-radius: 8px; border: none; margin-top: 15px; width: 80%; max-width: 300px;
+      text-align: center; letter-spacing: 2px; color: #111827;
+    }
+    #masterLockScreen button {
+      margin-top: 15px; padding: 12px 30px; font-size: 14px; font-weight: 600; background: #2563eb; color: #fff; border:none; border-radius: 99px; cursor: pointer;
+    }
+    #masterLockMsg { color: #f87171; margin-top: 15px; font-size: 13px; min-height: 20px;}
+
+    .month-container table th:nth-child(1){width:80px;}
+    .month-container table th:nth-child(2){width:70px;}
+    .month-container table th:nth-child(3){width:180px;}
+    .month-container table th:nth-child(4){width:80px;}
+    .month-container table th:nth-child(5){width:130px;}
+    .month-container table th:nth-child(6){width:70px;}
+    .month-container table th:nth-child(7){width:120px;}
+
+    #resultadoComparacion table th:nth-child(1){width:100px;}
+    #resultadoComparacion table th:nth-child(2){width:120px;}
+    #resultadoComparacion table th:nth-child(3){width:70px;}
+    #resultadoComparacion table th:nth-child(4){width:auto;}
+    #resultadoComparacion table th:nth-child(5){width:100px;}
+
+    th,td{padding:8px 8px; border-bottom:1px solid var(--border); vertical-align:middle;}
+    th{background:var(--accent-soft);text-align:left;font-size:11px;text-transform:uppercase;color:#374151;letter-spacing:.03em; white-space: nowrap;}
+    tbody tr:nth-child(odd){background:#f9fafb;}
+    
+    .fila-entregada { background-color: #f0fdf4 !important; }
+    .fila-entregada:hover { background-color: #dcfce7 !important; }
+
+    .alert-tag { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; font-size:10px; font-weight:bold; color:#fff; margin-left:4px; }
+    .alert-tag.money { background-color: #ef4444; } 
+    .alert-tag.provider { background-color: #f97316; } 
+
+    .code{font-family:monospace;font-size:11px;background:#111827;color:#e5e7eb;padding:2px 6px;border-radius:999px;white-space:nowrap;}
+    
+    .quick-select-grid {display: flex;flex-wrap: wrap;gap: 8px;margin-bottom: 10px;padding: 4px 0;}
+    .qs-pill {font-size: 11px;font-weight: 500;padding: 6px 10px;border-radius: 999px;background: #fff;border: 1px solid var(--border);color: var(--text);cursor: pointer;transition: all 0.2s ease;display: inline-flex;align-items: center;width: 160px;justify-content: center;text-align: center;gap: 6px;text-transform: uppercase;letter-spacing: 0.03em;}
+    .qs-pill:hover {border-color: var(--accent);transform: translateY(-1px);box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+    .qs-pill.active {background: var(--accent);color: #fff;border-color: var(--accent);box-shadow: 0 4px 10px rgba(17, 24, 39, 0.2);}
+    .qs-pill .alert-dot {background: #dc2626;color: #ffffff;font-size: 10px;font-weight: 700;min-width: 18px;height: 18px;border-radius: 999px;display: inline-flex;align-items: center;justify-content: center;padding: 0 4px;margin-left: 2px;box-shadow: 0 1px 2px rgba(0,0,0,0.1);}
+    
+    .admin-sectores-wrapper {margin-top: 14px;border-top: 1px solid var(--border);}
+    .admin-sectores-header {padding: 10px 4px;cursor: pointer;display: flex;justify-content: space-between;align-items: center;font-size: 11px;font-weight: 600;color: #6b7280;user-select: none;}
+    .admin-sectores-header:hover {color: var(--text);}
+    .admin-sectores-body {display: none; padding-top: 4px; animation: fadeIn 0.2s ease-in-out;}
+    
+    .pill-sector{font-size:11px;padding:4px 10px;border-radius:999px;background:#111827;color:#fff;display:inline-flex;align-items:center;gap:6px;}
+    .pill-sector span.dot{width:7px;height:7px;border-radius:999px;background:#22c55e;}
+    .sector-name-pill{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 16px;border-radius:999px;background:#111827;color:#fff;font-size:12px;min-width:220px;}
+    .sector-alert-pill{font-size:10px;padding:2px 8px;border-radius:999px;background:#b91c1c;color:#fff;white-space:nowrap;}
+    .estado-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border:1px solid var(--border); border-radius:999px;}
+    .estado-pill span.dot{width:6px;height:6px;border-radius:999px;background:currentColor;}
+    .estado-pendiente{background:#fef3c7;border-color:#fbbf24;color:#92400e;}
+    .estado-pedido{background:#e5e7eb;border-color:#cbd5e1;color:#374151;}
+    .estado-recibido{background:#dbeafe;border-color:#60a5fa;color:#1d4ed8;}
+    .estado-entregado{background:#dcfce7;border-color:#22c55e;color:#166534;}
+    
+    .fila-entregada{background:#e6ffe6 !important;} 
+    .empresa-pills{display:flex;gap:4px;flex-wrap:wrap;}
+    .pill-empresa{border-radius:999px;border:1px solid var(--border);padding:2px 8px;font-size:10px;background:#f9fafb;color:#374151;cursor:pointer;}
+    .pill-empresa.activa{background:#111827;color:#fff;border-color:#111827;}
+    .acciones-pedido{display:flex;flex-direction:column;gap:4px;flex-wrap:nowrap;align-items:stretch;}
+    .acciones-pedido .estado-btn{min-width:78px;}
+    .acciones-pedido .estado-btn.activo{background:#111827;color:#fff;}
+    footer{padding:6px 18px 16px;font-size:11px;color:#9ca3af;text-align:center;}
+    
+    .importe-proveedor-cell{ display:flex; flex-direction:column; gap:4px; font-size:11px; }
+    .importe-wrapper{ display:flex; align-items:center; gap:4px; }
+    .input-importe-pendiente{ width:70px; font-size:10px; padding:3px 6px; border-radius:6px; border:1px solid var(--border); text-align: right; }
+    .input-proveedor { width:100%; font-size:10px; padding:3px 6px; border-radius:6px; border:1px solid var(--border); }
+    .eur-symbol{font-size:11px;color:#374151;}
+    
+    .mat-resumen{display:flex;flex-direction:column;gap:4px;max-width:100%;}
+    .mat-resumen .mat-text{font-size:11px;color:#111827;white-space:normal;word-break:break-word;max-width:100%;}
+    .btn-mini-mat{font-size:10px;padding:2px 6px;border-radius:999px;border:1px solid var(--border);background:#f9fafb;color:#374151;cursor:pointer;align-self: flex-start;}
+    
+    .grupo-empresa-row td{background:#f3f4f6;font-size:11px;font-weight:600;color:#111827;border-top:1px solid var(--border);cursor:pointer;}
+    .grupo-empresa-total{margin-left:8px;font-size:11px;color:#111827;font-weight:500;}
+    .fila-total-empresa td{background:#f9fafb;font-size:11px;border-top:1px solid #e5e7eb;}
+    .grupo-empresa-label{margin-right:8px;}
+    .grupo-empresa-badge{display:inline-block;margin-right:6px;padding:1px 6px;border-radius:999px;background:#e5e7eb;font-size:10px;color:#374151;}
+    .grupo-empresa-chevron{float:right;font-size:11px;color:#6b7280;}
+    
+    .alert-wrapper { display: flex; align-items: center; gap: 4px; }
+    .alert-price-pill { background: #ef4444; color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600; display: inline-block; white-space: nowrap; }
+    .alert-proveedor-pill { background: #f97316; color: #fff; font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600; display: inline-block; white-space: nowrap; }
+
+    .entregados-box{margin-top:10px;border-top:1px dashed var(--border);padding-top:6px;}
+    .entregados-header{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#374151;margin-bottom: 8px;}
+    .entregados-header span.label{font-weight:600;}
+    .months-grid{display:flex;flex-wrap:wrap;gap:6px;margin: 6px 0 10px 0;padding: 4px;background: #f9fafb;border-radius: 8px;}
+    .month-pill{flex: 1 0 auto;text-align: center;padding: 6px 10px;border: 1px solid #e5e7eb;background: #fff;border-radius: 8px;font-size: 11px;color: #9ca3af;cursor: pointer;transition: all 0.2s ease;min-width: 60px;}
+    .month-pill:hover{border-color: #d1d5db;color: #374151;}
+    .month-pill.has-orders{color: #111827;font-weight: 600;border-color: #d1d5db;}
+    .month-pill.active{background: #111827;color: #fff;border-color: #111827;box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+    .month-container{display: none;margin-bottom: 12px;border: 1px solid #e5e7eb;border-radius: 8px;overflow: hidden;}
+    .month-container.active{display: block;animation: fadeIn 0.2s ease;}
+    .archivo-header{margin-top: 10px;padding: 8px;background: #fef2f2;border: 1px dashed #fecaca;border-radius: 8px;font-size: 11px;color: #991b1b;cursor: pointer;display: flex;justify-content: space-between;}
+    .archivo-body{ display: none; margin-top: 6px; }
+    .archivo-body.open{ display: block; }
+    @keyframes fadeIn {from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); }}
+    
+    @media(max-width:860px){ main{padding:10px 12px;} .panes{flex-direction:column;} }
+    
+    .resumen-empresas{margin-top:14px;padding-top:8px;border-top:1px dashed var(--border);}
+    .resumen-empresas h3{font-size:13px;margin-bottom:6px;color:#111827;}
+    .resumen-controles{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;}
+    .resumen-controles .field{flex:1;min-width:0;}
+    #resMesWrapper{flex:1;}
+    .resumen-botones{flex:1 0 100%;display:flex;justify-content:flex-end;margin-top:4px;}
+    .resumen-btns{display:flex;gap:4px;flex-wrap:wrap;}
+    .tabla-resumen-empresas{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+    .tabla-resumen-empresas th,.tabla-resumen-empresas td{border-bottom:1px solid var(--border);padding:4px 6px;text-align:left;}
+    .tabla-resumen-empresas th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#6b7280;background:#f9fafb;}
+    .tabla-resumen-empresas td{font-size:11px;color:#111827;}
+    .resumen-total-global{margin-top:6px;font-size:11px;font-weight:600;color:#111827;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div id="masterLockScreen">
+  <img src="./sklum_icon.ico" style="width:70px;border-radius:12px;margin-bottom:20px;background:#fff;padding:6px;">
+  <h2 style="font-size:20px;margin-bottom:6px;">Panel de Administración</h2>
+  <p style="color:#9ca3af;font-size:13px;">Acceso restringido. Introduce la clave maestra.</p>
+  <input type="password" id="inputMasterLock" placeholder="CONTRASEÑA">
+  <div id="masterLockMsg"></div>
+  <button id="btnMasterUnlock">Entrar</button>
+</div>
+
+<header>
+  <img src="./sklum_icon.ico" alt="Sklum">
+  <div class="title">
+    <span>Compras mantenimiento</span>
+    <span>Panel de control · Responsable de compras</span>
+  </div>
+  <button id="btnChangeMasterPass" class="btn-master-lock">
+    🔒 Cambiar clave
+  </button>
+</header>
+<main>
+  <div class="layout-row">
+    <div class="layout-main">
+      <div class="panes">
+        <section class="panel">
+          <h2>
+            Selección de sector
+            <span class="badge" id="badgeSectores">0 sectores</span>
+          </h2>
+          <div id="quickSelectContainer" class="quick-select-grid"><div style="font-size:11px;color:#9ca3af;padding:4px;">Cargando sectores...</div></div>
+          <div class="admin-sectores-wrapper">
+            <div class="admin-sectores-header" id="toggleAdminSectores"><span>⚙️ Administrar / Crear sectores</span><span class="chevron">▼</span></div>
+            <div class="admin-sectores-body" id="adminSectoresBody">
+              <div class="row" style="margin-top:8px; border-bottom:1px dashed var(--border); padding-bottom:12px; margin-bottom:12px;">
+                <div class="field" style="flex:1;">
+                  <label for="nuevoSectorNombre">Nuevo sector</label>
+                  <input id="nuevoSectorNombre" type="text" placeholder="Ej: FONTANERIA...">
+                </div>
+                <div class="field" style="flex:1;">
+                  <label for="nuevoSectorPassword">Contraseña (Opcional)</label>
+                  <input id="nuevoSectorPassword" type="text" placeholder="Clave acceso app">
+                </div>
+                <div class="field" style="flex:0 0 auto;">
+                  <button class="btn-main" id="btnCrearSector">Crear</button>
+                </div>
+              </div>
+              <table class="tabla-sectores">
+                <thead><tr><th>Sector</th><th>Código</th><th>Acciones</th></tr></thead>
+                <tbody id="tbodySectores"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>
+            Pedidos del sector activo
+            <span class="badge" id="badgeResumen">0</span>
+          </h2>
+          <div class="row" style="margin-bottom:8px;">
+            <div class="field" style="flex:1;">
+              <label>Sector activo</label>
+              <div id="pillSectorActivo" class="pill-sector"><span class="dot"></span><span>Sin sector seleccionado</span></div>
+              <div class="hint" id="hintSector">Elige un sector arriba.</div>
+            </div>
+          </div>
+          <table class="tabla-pedidos-activos">
+            <thead><tr><th>Fecha pedido</th><th>Referencia</th><th>Material solicitado</th><th>Importe / Proveedor</th><th>Empresa</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tbodyPedidosActivos"></tbody>
+          </table>
+          <div class="entregados-box">
+            <div class="entregados-header" id="headerEntregados"><span class="label">Pedidos entregados</span><span class="badge" id="badgeEntregados">0</span></div>
+            <div class="entregados-body" id="bodyEntregados" style="display:block;"><div id="containerEntregadosDinamico"></div></div>
+          </div>
+          <div style="margin-top:10px;border-top:1px dashed var(--border);padding-top:8px;">
+            <h3 style="font-size:13px;margin-bottom:4px;">Crear pedido desde el panel</h3>
+            <div class="row" style="margin-top:4px;">
+              <div class="field" style="flex:1;"><label>Referencia</label><input id="pcRef" type="text" placeholder="Nº pedido, proveedor…"></div>
+              <div class="field" style="flex:2;"><label>Material solicitado</label><textarea id="pcMat" placeholder="Descripción del material" style="min-height:60px;white-space:pre-wrap;overflow-wrap:break-word;"></textarea></div>
+              <div class="field" style="flex:0 0 auto;"><button class="btn-main" id="btnPcAdd">Añadir</button></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <section class="panel panel-empresas">
+      <h2>Gestión de empresas</h2>
+      
+      <div class="admin-sectores-header" id="toggleAdminEmpresas" style="margin-bottom:8px;">
+        <span>⚙️ Administrar / Crear empresas</span>
+        <span class="chevron">▼</span>
+      </div>
+
+      <div id="adminEmpresasBody" style="display:none; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;">
+        <div class="row">
+          <div class="field" style="flex:2;"><label for="nuevaEmpresaNombre">Nombre de empresa</label><input id="nuevaEmpresaNombre" type="text" placeholder="Ej: WOODS, SKLUM…"></div>
+          <div class="field" style="flex:0 0 auto;"><button class="btn-main" id="btnCrearEmpresa">Crear empresa</button></div>
+        </div>
+        <div style="margin-top:8px;">
+          <table class="tabla-empresas"><thead><tr><th>Empresa</th><th>Total importe</th><th>Acciones</th></tr></thead><tbody id="tbodyEmpresas"></tbody></table>
+        </div>
+      </div>
+      
+      <div class="row" style="justify-content:center; margin-bottom:8px;">
+        <div class="empresas-chart" style="width:100%; display:flex; justify-content:center;">
+          <canvas id="chartEmpresas"></canvas>
+        </div>
+      </div>
+
+      <div class="resumen-empresas">
+        <h3>Resumen de gastos</h3>
+        <div class="row resumen-controles">
+          <div class="field"><label>Tipo</label><select id="resTipo"><option value="mensual">Mensual</option><option value="anual">Anual</option></select></div>
+          <div class="field" id="resMesWrapper"><label>Mes</label><select id="resMes"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
+          <div class="field"><label>Año</label><select id="resAnio"></select></div>
+          <div class="field resumen-botones"><label>&nbsp;</label><div class="resumen-btns"><button class="btn-sm" id="btnCopiarResumen">Copiar</button><button class="btn-sm" id="btnImprimirResumen">Imprimir</button></div></div>
+        </div>
+        <table class="tabla-resumen-empresas"><thead><tr><th>Empresa</th><th>Importe</th></tr></thead><tbody id="tbodyResumenEmpresas"></tbody></table>
+        <div class="resumen-total-global" id="resumenTotalGlobal"></div>
+        
+        <div style="margin-top:14px; padding-top:8px; border-top:1px dashed var(--border);">
+            <h3 style="font-size:13px;margin-bottom:4px;">Análisis y Comparación de Precios</h3>
+            <div class="row" style="margin-top:4px; align-items:flex-end; gap:10px; flex-wrap:wrap;">
+                <div class="field" style="flex:2; min-width:220px;">
+                    <label>Buscar material o referencia</label>
+                    <input id="inputBusquedaPrecio" type="text" placeholder="Ej: tornillos m8, válvula...">
+                </div>
+                <div class="field" style="flex:1; min-width:180px;">
+                    <label>Rango de años (opcional)</label>
+                    <select id="filtroAnios">
+                        <option value="0">Todos los años</option>
+                        <option value="1">Último año</option>
+                        <option value="2">Últimos 2 años</option>
+                        <option value="3">Últimos 3 años</option>
+                        <option value="4">Últimos 4 años</option>
+                        <option value="5">Últimos 5 años</option>
+                        <option value="6">Últimos 6 años</option>
+                        <option value="7">Últimos 7 años</option>
+                        <option value="8">Últimos 8 años</option>
+                        <option value="9">Últimos 9 años</option>
+                        <option value="10">Últimos 10 años</option>
+                    </select>
+                </div>
+                <div class="field" style="flex:1; min-width:180px;">
+                    <label>Filtrar por proveedor (opcional)</label>
+                    <input id="filtroProveedor" type="text" placeholder="Ej: Amazon, Leroy Merlin">
+                </div>
+                <div class="field" style="flex:0 0 auto; display:flex; gap:6px;">
+                    <button class="btn-main" id="btnCompararPrecios">Comparar Precios</button>
+                    <button class="btn-sm" id="btnResetComparacion" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db;">Reset</button>
+                </div>
+            </div>
+            <div id="resultadoComparacion" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer>Los responsables usan la URL <strong>app_responsable.html?sector=CODIGO-SECTOR</strong>. El código se ve en la tabla de sectores.</footer>
+
+<div id="print-area" class="print-only"></div>
+
+<script>
+  (function(){
+    const lock = document.getElementById('masterLockScreen');
+    const input = document.getElementById('inputMasterLock');
+    const btn = document.getElementById('btnMasterUnlock');
+    const msg = document.getElementById('masterLockMsg');
+    const btnChange = document.getElementById('btnChangeMasterPass');
+
+    const configRef = db.collection('settings').doc('admin_panel');
+
+    lock.style.display = 'flex';
+
+    configRef.onSnapshot(doc => {
+        if(!doc.exists){
+            configRef.set({password: '1234', pin: 'freebiker'});
+            return;
+        }
+
+        const data = doc.data();
+        const remotePass = data.password || '1234';
+        const remotePin = data.pin || 'freebiker'; 
+        const localPass = localStorage.getItem('panel_master_key');
+
+        if(localPass === remotePass){
+            lock.style.display = 'none';
+        } else {
+            lock.style.display = 'flex';
+            msg.textContent = localPass ? "Sesión caducada. Introduce nueva clave." : "";
+            if(!localPass) msg.style.color = 'inherit';
+        }
+
+        btn.onclick = function(){
+            const val = input.value.trim();
+            if(val === remotePass){
+                localStorage.setItem('panel_master_key', val);
+                lock.style.display = 'none';
+                msg.textContent = "";
+            } else {
+                msg.textContent = "Contraseña incorrecta";
+                msg.style.color = '#f87171';
+                input.value = '';
+                input.focus();
+            }
+        };
+
+        if(btnChange){
+            btnChange.onclick = function(){
+                const pinAttempt = prompt("⚠️ SEGURIDAD\nIntroduce el PIN de Propietario para autorizar el cambio:");
+                if(pinAttempt === remotePin){
+                    const newPass = prompt("PIN Correcto.\nIntroduce la nueva contraseña de acceso para el personal:");
+                    if(newPass && newPass.trim().length > 0){
+                        localStorage.setItem('panel_master_key', newPass.trim());
+                        configRef.update({password: newPass.trim()}).then(()=>{
+                            alert("✅ Contraseña cambiada.\nEl resto de equipos se han bloqueado.");
+                        }).catch(e => alert("Error: " + e));
+                    }
+                } else if (pinAttempt !== null) {
+                    alert("⛔ PIN Incorrecto. No tienes permiso para cambiar la clave.");
+                }
+            };
+        }
+    }, err => {
+        console.error("Error seguridad panel:", err);
+        msg.textContent = "Error de conexión.";
+    });
+  })();
+
+  function slug(str){ return (str || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+  function prettySector(id){ if(!id) return 'SIN SECTOR'; return id.replace(/-/g,' ').toUpperCase(); }
+  function normalizarEstado(r){ if(!r||r==='pendiente') return 'pendiente'; if(r==='pedido')return 'pedido'; if(r==='recibido')return 'recibido'; if(r==='entregado')return 'entregado'; return r;}
+  function estadoClase(e){ if(e==='pendiente')return 'estado-pendiente'; if(e==='pedido')return 'estado-pedido'; if(e==='recibido')return 'estado-recibido'; if(e==='entregado')return 'estado-entregado'; return 'estado-pendiente';}
+  function estadoTexto(e){ if(e==='pendiente')return 'Pendiente'; if(e==='pedido')return 'Pedido'; if(e==='recibido')return 'En taller'; if(e==='entregado')return 'Entregado'; return 'Pendiente';}
+  function nombreMes(n){ const i=parseInt(n,10); const m=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; return m[i-1]||'Mes '+n;}
+  function parseFecha(d){ 
+    try{if(d.fechaRecibidoTS)return d.fechaRecibidoTS.toDate();}catch(e){} 
+    const s=(d.fechaRecibido||'').toString(); 
+    const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); 
+    if(m)return new Date(m[3],m[2]-1,m[1]); 
+    return null;
+  }
+
+  const nuevoSectorNombre=document.getElementById('nuevoSectorNombre');
+  const nuevoSectorPassword=document.getElementById('nuevoSectorPassword');
+  const btnCrearSector=document.getElementById('btnCrearSector');
+  const tbodySectores=document.getElementById('tbodySectores');
+  const badgeSectores=document.getElementById('badgeSectores');
+  const pillSectorActivo=document.getElementById('pillSectorActivo');
+  const hintSector=document.getElementById('hintSector');
+  const tbodyActivos=document.getElementById('tbodyPedidosActivos');
+  const containerEntregados=document.getElementById('containerEntregadosDinamico');
+  const badgeResumen=document.getElementById('badgeResumen');
+  const badgeEntregados=document.getElementById('badgeEntregados');
+  const pcRef=document.getElementById('pcRef');
+  const pcMat=document.getElementById('pcMat');
+  const btnPcAdd=document.getElementById('btnPcAdd');
+  const nuevaEmpresaNombre=document.getElementById('nuevaEmpresaNombre');
+  const btnCrearEmpresa=document.getElementById('btnCrearEmpresa');
+  const tbodyEmpresas=document.getElementById('tbodyEmpresas');
+  const searchMaterial = document.getElementById('inputBusquedaPrecio');
+  const btnCompararPrecios = document.getElementById('btnCompararPrecios');
+  const btnResetComparacion = document.getElementById('btnResetComparacion');
+  const resultadosComparacion = document.getElementById('resultadoComparacion');
+
+  let sectorActual=null, unsubEmpresas=null, empresasCache=[], totalesEmpresasGlobal={};
+  let unsubSectores=null, unsubPedidosSector=null, unsubPedidosGlobal=null, sectoresCache=[], pendientesPorSector={};
+  let globalPedidosEntregados = [];
+
+  function suscribirSectores(){
+    unsubSectores && unsubSectores();
+    unsubSectores = db.collection('sectores').orderBy('nombre').onSnapshot(snapshot=>{
+      const s=[];
+      snapshot.forEach(d=>{
+        const da=d.data()||{};
+        s.push({id:d.id, nombre:da.nombre||d.id, slug:da.slug||d.id, password:da.password||''});
+      });
+      sectoresCache=s;
+      renderSectores();
+    });
+  }
+
+  function suscribirPedidosGlobal(){
+    unsubPedidosGlobal && unsubPedidosGlobal();
+    unsubPedidosGlobal = db.collection('pedidos').onSnapshot(snapshot=>{
+      const c={}, t={};
+      globalPedidosEntregados = [];
+
+      snapshot.forEach(doc=>{
+        const d=doc.data()||{};
+        const est=normalizarEstado(d.estado);
+        const sec=d.sector||'';
+        let emp=d.empresa&&d.empresa.trim()?d.empresa.trim():'Sin empresa';
+        if(emp==='SLUM')emp='SKLUM';
+
+        if(est!=='entregado') c[sec]=(c[sec]||0)+1;
+
+        if(est==='entregado'){
+          const r=(d.importeCompra||'').toString().replace(',','.');
+          const n=parseFloat(r);
+          if(!isNaN(n)) t[emp]=(t[emp]||0)+n;
+
+          const f = parseFecha(d);
+          if(f && !isNaN(n)){
+            globalPedidosEntregados.push({
+              id: doc.id,
+              empresa: emp,
+              fecha: f,
+              importe: n,
+              ref: (d.referencia||'').trim(),
+              mat: (d.material||'').trim(),
+              proveedor: (d.proveedor||'').trim()
+            });
+          }
+        }
+      });
+
+      pendientesPorSector=c;
+      totalesEmpresasGlobal=t;
+
+      renderSectores();
+      renderEmpresasPanel();
+      actualizarGraficosYResumenes();
+    });
+  }
+
+  function suscribirEmpresas(){
+    unsubEmpresas && unsubEmpresas();
+    unsubEmpresas = db.collection('empresas').orderBy('nombre').onSnapshot(snapshot=>{
+      const a=[];
+      snapshot.forEach(d=>{
+        const da=d.data()||{};
+        const n=(da.nombre||'').trim();
+        if(n) a.push({id:d.id,nombre:n});
+      });
+      empresasCache=a;
+      renderEmpresasPanel();
+      if(sectorActual) suscribirPedidosSector();
+      actualizarGraficosYResumenes();
+    });
+  }
+
+  function renderEmpresasPanel(){
+    if(!tbodyEmpresas)return; tbodyEmpresas.innerHTML=''; const mt=totalesEmpresasGlobal||{}; const l=empresasCache.slice(); const ne=[];
+    Object.keys(mt).forEach(n=>{ const ex=l.some(e=>e.nombre===n); if(!ex && n!=='Sin empresa') ne.push(n); });
+    ne.sort(); ne.forEach(n=>l.push({id:null,nombre:n})); const tse=mt.hasOwnProperty('Sin empresa');
+    l.forEach(e=>{
+      const tr=document.createElement('tr'); const t=mt[e.nombre]||0; const ts=t?t.toFixed(2).replace('.',',')+' €':'';
+      tr.innerHTML=`<td>${e.nombre}</td><td>${ts}</td><td>${e.id?'<button class="btn-sm danger" data-accion="borrarEmpresa" data-id="'+e.id+'">Borrar</button>':''}</td>`;
+      tbodyEmpresas.appendChild(tr);
+    });
+    if(tse){ const t=mt['Sin empresa']||0; const tr=document.createElement('tr'); tr.innerHTML=`<td>Sin empresa</td><td>${t.toFixed(2).replace('.',',')} €</td><td></td>`; tbodyEmpresas.appendChild(tr); }
+  }
+
+  function renderSectores(){
+    tbodySectores.innerHTML=''; const sc=sectoresCache||[]; badgeSectores.textContent=sc.length+(sc.length===1?' sector':' sectores');
+    let base = window.location.href; base = base.substring(0, base.lastIndexOf('/') + 1); const appBase = base + 'app_responsable.html?sector=';
+    const qc=document.getElementById('quickSelectContainer'); if(qc) qc.innerHTML='';
+    if(!sc.length){
+      if(qc) qc.innerHTML='<span style="font-size:11px;color:#9ca3af;">No hay sectores.</span>';
+      const tr=document.createElement('tr'); tr.innerHTML='<td colspan="3" style="font-size:11px;color:#6b7280">Sin sectores.</td>'; tbodySectores.appendChild(tr); return;
+    }
+    sc.forEach(s=>{
+      if(qc){
+        const b=document.createElement('div'); b.className='qs-pill'; if(sectorActual===s.slug) b.classList.add('active');
+        const ac=pendientesPorSector[s.slug]||0; let hc=s.nombre; if(ac>0) hc+=` <span class="alert-dot" title="${ac} pendientes">${ac}</span>`;
+        b.innerHTML=hc; b.addEventListener('click',()=>aplicarSector(s.slug)); qc.appendChild(b);
+      }
+      const tr=document.createElement('tr');
+      const tdN=document.createElement('td'); const p=document.createElement('div'); p.className='sector-name-pill'; p.dataset.slug=s.slug;
+      const sn=document.createElement('span'); sn.textContent=s.nombre; p.appendChild(sn);
+      const ac=pendientesPorSector[s.slug]||0; if(ac>0){ const a=document.createElement('span'); a.className='sector-alert-pill'; a.textContent=ac+(ac===1?' pendiente':' pendientes'); p.appendChild(a); }
+      tdN.appendChild(p); tr.appendChild(tdN);
+      const tdC=document.createElement('td'); const scode=document.createElement('span'); scode.className='code'; scode.textContent=s.slug; tdC.appendChild(scode); tr.appendChild(tdC);
+      const tdA=document.createElement('td');
+      const bC=document.createElement('button'); bC.className='btn-sm copy'; bC.textContent='Copiar enlace'; bC.dataset.link=appBase+encodeURIComponent(s.slug);
+      const bK=document.createElement('button'); bK.className='btn-sm key'; bK.textContent='🔑 Clave'; bK.style.marginLeft='4px'; bK.onclick=()=>cambiarClave(s);
+      const bD=document.createElement('button'); bD.className='btn-sm danger'; bD.textContent='Borrar'; bD.dataset.slug=s.slug; bD.style.marginLeft='4px';
+      tdA.appendChild(bC); tdA.appendChild(bK); tdA.appendChild(bD); tr.appendChild(tdA); tbodySectores.appendChild(tr);
+    });
+  }
+
+  function cambiarClave(s){
+    const nueva = prompt("Introduce la nueva contraseña para el sector " + s.nombre + ":\n(Deja en blanco para quitarla)", s.password);
+    if(nueva === null) return; 
+    db.collection('sectores').doc(s.slug).update({password: nueva.trim()})
+      .then(()=>alert("Contraseña actualizada. Los responsables deberán volver a introducirla."))
+      .catch(e=>alert("Error al actualizar: "+e));
+  }
+
+  function aplicarSector(sv){
+    if(!sv){ sectorActual=null; pillSectorActivo.querySelector('span:nth-child(2)').textContent='Sin sector seleccionado'; hintSector.textContent='Elige un sector arriba.'; tbodyActivos.innerHTML=''; containerEntregados.innerHTML=''; badgeResumen.textContent='0'; badgeEntregados.textContent='0'; document.querySelectorAll('.qs-pill').forEach(b=>b.classList.remove('active')); return; }
+    sectorActual=sv; const txt=prettySector(sv); pillSectorActivo.querySelector('span:nth-child(2)').textContent=txt; hintSector.textContent='';
+    renderSectores(); suscribirPedidosSector();
+  }
+
+  function suscribirPedidosSector(){
+    unsubPedidosSector && unsubPedidosSector(); tbodyActivos.innerHTML=''; containerEntregados.innerHTML=''; badgeResumen.textContent='0'; badgeEntregados.textContent='0';
+    if(!sectorActual)return;
+    unsubPedidosSector=db.collection('pedidos').where('sector','==',sectorActual).onSnapshot(snapshot=>{
+      const p=[];
+      snapshot.forEach(d=>{
+        const da=d.data()||{};
+        p.push({ id:d.id, fechaPedido:da.fechaPedido||'', fechaRecibido:da.fechaRecibido||'', ref:da.referencia||'', mat:da.material||'', empresa:da.empresa||'', importeCompra:da.importeCompra||'', proveedor:da.proveedor||'', estado:normalizarEstado(da.estado) });
+      });
+      renderPedidos(p);
+    });
+  }
+
+  function renderPedidos(pedidos){
+    tbodyActivos.innerHTML=''; containerEntregados.innerHTML=''; const act=[], ent=[]; pedidos.forEach(p=>{ if(p.estado==='entregado') ent.push(p); else act.push(p); });
+    badgeResumen.textContent=String(pedidos.length); badgeEntregados.textContent=String(ent.length);
+    if(!act.length){ const tr=document.createElement('tr'); tr.innerHTML='<td colspan="7" style="font-size:11px;color:#6b7280">Sin pedidos para este sector.</td>'; tbodyActivos.appendChild(tr); }
+    else{
+      act.forEach(p=>{
+        const tr=document.createElement('tr'); const cl=estadoClase(p.estado); const tx=estadoTexto(p.estado); const fm=p.fechaPedido||'';
+        let el=empresasCache.length?empresasCache.map(e=>e.nombre):['WOODS','THE MASIE','SKLUM']; const eh=el.map(n=>`<button class="pill-empresa" data-empresa="${n}">${n}</button>`).join('');
+        
+        const valMat = p.mat || '';
+        const materialCell = `<textarea class="input-material-activos" data-id="${p.id}" placeholder="Descripción del material" style="min-height:50px;width:100%;font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--border);white-space:pre-wrap;overflow-wrap:break-word;">${valMat}</textarea>`;
+        
+        const valImp = p.importeCompra || '';
+        const valProv = p.proveedor || '';
+        
+        const cellImpProv = `
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <input type="text" class="input-proveedor" data-id="${p.id}" value="${valProv}" placeholder="Proveedor" style="font-size:10px; width:100%;">
+                <div style="display:flex; align-items:center;">
+                    <span style="font-size:10px; margin-right:2px;">€</span>
+                    <input type="text" class="input-importe" data-id="${p.id}" value="${valImp}" placeholder="0.00" style="width:70px; font-size:10px;">
+                </div>
+            </div>
+        `;
+
+        tr.innerHTML=`<td>${fm}</td><td>${p.ref||''}</td><td>${materialCell}</td><td>${cellImpProv}</td><td><div class="empresa-pills" data-id="${p.id}">${eh}</div></td><td><span class="estado-pill ${cl}"><span class="dot"></span>${tx}</span></td><td class="acciones-pedido"><button class="btn-sm estado-btn" data-accion="setEstado" data-estado="pendiente" data-id="${p.id}">Pendiente</button><button class="btn-sm estado-btn" data-accion="setEstado" data-estado="pedido" data-id="${p.id}">Pedido</button><button class="btn-sm estado-btn" data-accion="setEstado" data-estado="recibido" data-id="${p.id}">En taller</button><button class="btn-sm estado-btn" data-accion="setEstado" data-estado="entregado" data-id="${p.id}">Entregado</button></td>`;
+        const b=tr.querySelectorAll('.estado-btn'); b.forEach(bt=>{if(bt.dataset.estado===p.estado)bt.classList.add('activo');});
+        if(p.empresa){ const c=tr.querySelector('.empresa-pills'); if(c){ const bt=c.querySelector(`.pill-empresa[data-empresa="${p.empresa}"]`); if(bt) bt.classList.add('activa'); } }
+        tbodyActivos.appendChild(tr);
+      });
+    }
+    if(!ent.length){ containerEntregados.innerHTML='<div style="font-size:11px;color:#6b7280;padding:8px;">Sin pedidos entregados.</div>'; }
+    else{
+      const gr={}; ent.forEach(p=>{ let e=p.empresa&&p.empresa.trim()?p.empresa.trim():'Sin empresa'; if(e==='SLUM')e='SKLUM'; if(!gr[e])gr[e]=[]; gr[e].push(p); });
+      const k=[]; const be=empresasCache.map(e=>e.nombre); be.forEach(n=>{if(gr[n])k.push(n);}); Object.keys(gr).forEach(e=>{if(e!=='Sin empresa'&&be.indexOf(e)===-1)k.push(e);}); if(gr['Sin empresa'])k.push('Sin empresa');
+      const tbl=document.createElement('table'); tbl.style.marginTop='0'; const tb=document.createElement('tbody'); tbl.appendChild(tb); containerEntregados.appendChild(tbl);
+      const ya=new Date().getFullYear();
+      k.forEach(e=>{
+        const l=gr[e]||[]; const yp={}; for(let i=1;i<=12;i++)yp[i]=[]; const hi={}; let ta=0; 
+        
+        let missingPriceCount = 0;
+
+        l.forEach(p=>{ 
+            const fb=(p.fechaRecibido||p.fechaPedido||'').split(',')[0].trim(); const pa=fb.split('/'); let y=0,m=0; 
+            if(pa.length===3){ y=parseInt(pa[2],10); m=parseInt(pa[1],10); } 
+            
+            if(y===ya){ 
+                if(yp[m])yp[m].push(p); 
+                const raw = (p.importeCompra||'').toString().replace(',','.'); 
+                const n = parseFloat(raw); 
+                if(!isNaN(n) && n > 0) {
+                    ta += n; 
+                } else {
+                    missingPriceCount++;
+                }
+            } else { 
+                if(!hi[y])hi[y]=[]; hi[y].push(p); 
+            } 
+        });
+
+        const tas=ta.toFixed(2).replace('.',',')+' €';
+        
+        let alertPillHtml = '';
+        if(missingPriceCount > 0){
+            alertPillHtml = `<span class="alert-price-pill">${missingPriceCount} asignar precio</span>`;
+        }
+
+        const trG=document.createElement('tr'); 
+        trG.className='grupo-empresa-row'; 
+        trG.dataset.empresa=e; 
+        trG.dataset.colapsado='1'; 
+        trG.innerHTML=`<td colspan="7"><span class="grupo-empresa-label">${e}</span><span class="grupo-empresa-badge">${l.length}</span>${alertPillHtml}<span class="grupo-empresa-total">Total año ${ya}: ${tas}</span><span class="grupo-empresa-chevron">▼</span></td>`; 
+        tb.appendChild(trG);
+
+        const trC=document.createElement('tr'); trC.className='fila-empresa-content'; trC.dataset.empresa=e; trC.style.display='none'; const tdC=document.createElement('td'); tdC.colSpan=7; tdC.style.padding='0 8px 12px 8px'; tdC.style.background='#fff';
+        const dp=document.createElement('div'); dp.className='months-grid';
+        for(let m=1;m<=12;m++){ const om=yp[m]; const c=om.length; const pl=document.createElement('div'); pl.className='month-pill'; if(c>0)pl.classList.add('has-orders'); pl.textContent=nombreMes(m).toUpperCase()+' ('+c+')'; pl.addEventListener('click',function(){ const isa=pl.classList.contains('active'); dp.querySelectorAll('.month-pill').forEach(el=>el.classList.remove('active')); tdC.querySelectorAll('.month-container').forEach(el=>el.classList.remove('active')); if(!isa&&c>0){ pl.classList.add('active'); const ct=tdC.querySelector(`#cont-${slug(e)}-m${m}`); if(ct)ct.classList.add('active'); } }); dp.appendChild(pl); }
+        tdC.appendChild(dp);
+        for(let m=1;m<=12;m++){ const om=yp[m]; if(om.length===0)continue; const dm=document.createElement('div'); dm.id=`cont-${slug(e)}-m${m}`; dm.className='month-container'; const tm=document.createElement('table'); tm.style.margin='0'; tm.innerHTML=`<thead><tr><th>Entrega</th><th>Ref</th><th>Material</th><th>Empresa</th><th>Importe / Proveedor</th><th>Estado</th><th>Acciones</th></tr></thead><tbody></tbody>`; const tmb=tm.querySelector('tbody');
+          om.forEach(p=>{ 
+            const tr=document.createElement('tr'); 
+            tr.classList.add('fila-entregada');
+            const fm=p.fechaRecibido||p.fechaPedido||''; 
+            
+            let alertPrice = '';
+            const raw = (p.importeCompra||'').toString().replace(',','.'); 
+            const n = parseFloat(raw);
+            if(isNaN(n) || n <= 0) alertPrice = '<span class="alert-tag money">€</span>';
+
+            let alertProv = '';
+            if(!p.proveedor || p.proveedor.trim() === '') alertProv = '<span class="alert-tag provider">?</span>';
+
+            const cellImpProv = `
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; align-items:center;">
+                <input type="text" class="input-proveedor" data-id="${p.id}" value="${p.proveedor||''}" placeholder="Proveedor" style="font-size:10px; width:100%; padding:3px 6px; border-radius:6px; border:1px solid var(--border);">
+                ${alertProv}
+              </div>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <span style="font-size:10px;">€</span>
+                <input type="text" class="input-importe-pendiente" data-id="${p.id}" value="${p.importeCompra||''}" placeholder="0.00" style="width:70px; font-size:10px; padding:3px 6px; border-radius:6px; border:1px solid var(--border);">
+                <button class="btn-sm primary btn-aplicar-cambios" data-id="${p.id}" style="padding:3px 8px; font-size:10px; min-width:50px;">Aplicar</button>
+              </div>
+              ${alertPrice}
+            </div>
+            `;
+            
+            const valMatArchived = p.mat || '';
+            const materialCellArchived = `<textarea class="input-material-entregados" data-id="${p.id}" placeholder="Descripción del material" style="min-height:40px;width:100%;font-size:10px;padding:4px;border-radius:6px;border:1px solid var(--border);white-space:pre-wrap;overflow-wrap:break-word;">${valMatArchived}</textarea>`;
+
+            tr.innerHTML=`<td><input type="text" class="input-fecha" data-id="${p.id}" value="${fm}" placeholder="dd/mm/yyyy" style="width:75px;border:none;background:transparent;font-size:11px;color:#374151;"></td><td>${p.ref||''}</td><td>${materialCellArchived}</td><td>${p.empresa||''}</td><td>${cellImpProv}</td><td><span class="estado-pill estado-entregado"><span class="dot"></span>Entregado</span></td><td class="acciones-pedido"><button class="btn-sm estado-btn" data-accion="setEstado" data-estado="pendiente" data-id="${p.id}">Volver a pendiente</button><button class="btn-sm danger" data-accion="borrar" data-id="${p.id}">Borrar</button></td>`; tmb.appendChild(tr); }); dm.appendChild(tm); tdC.appendChild(dm); }
+        const yo=Object.keys(hi).sort((a,b)=>b-a);
+        if(yo.length>0){ const da=document.createElement('div'); da.className='archive-section'; const ha=document.createElement('div'); ha.className='archivo-header'; ha.innerHTML=`<span>Histórico / Años anteriores (${yo.join(', ')})</span><span>▼</span>`; const ba=document.createElement('div'); ba.className='archivo-body';
+          ha.addEventListener('click',()=>{ const io=ba.classList.contains('open'); if(io){ ba.classList.remove('open'); ha.querySelector('span:last-child').textContent='▼'; }else{ ba.classList.add('open'); ha.querySelector('span:last-child').textContent='▲'; } });
+          yo.forEach(y=>{ const oy=hi[y]; const dy=document.createElement('div'); dy.style.padding='8px'; dy.style.borderBottom='1px solid #eee'; dy.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><strong style="font-size:12px;">Año ${y} (${oy.length} pedidos)</strong><button class="btn-sm danger btn-borrar-anio" data-year="${y}" data-empresa="${e}">Borrar año ${y}</button></div>`; const th=document.createElement('table'); th.style.margin='0'; th.innerHTML=`<thead><tr><th>Entrega</th><th>Ref</th><th>Material</th><th>Acciones</th></tr></thead><tbody></tbody>`; const tbh=th.querySelector('tbody');
+            oy.forEach(p=>{ const tr=document.createElement('tr'); 
+            const valMatHistorico = p.mat || '';
+            const materialCellHistorico = `<textarea class="input-material-entregados" data-id="${p.id}" placeholder="Descripción del material" style="min-height:30px;width:100%;font-size:10px;padding:4px;border-radius:6px;border:1px solid var(--border);white-space:pre-wrap;overflow-wrap:break-word;">${valMatHistorico}</textarea>`;
+
+            tr.innerHTML=`<td>${p.fechaRecibido||''}</td><td>${p.ref}</td><td>${materialCellHistorico}</td><td><button class="btn-sm danger" data-accion="borrar" data-id="${p.id}">X</button></td>`; tbh.appendChild(tr); }); dy.appendChild(th); ba.appendChild(dy); });
+          da.appendChild(ha); da.appendChild(ba); tdC.appendChild(da); }
+        trC.appendChild(tdC); tb.appendChild(trC);
+      });
+      tb.addEventListener('click',function(e){
+        const rg=e.target.closest('.grupo-empresa-row'); if(rg){ const emp=rg.dataset.empresa; const col=rg.dataset.colapsado==='1'; rg.dataset.colapsado=col?'0':'1'; const ch=rg.querySelector('.grupo-empresa-chevron'); if(ch)ch.textContent=col?'▲':'▼'; const cr=tb.querySelector(`.fila-empresa-content[data-empresa="${emp}"]`); if(cr)cr.style.display=col?'table-row':'none'; }
+        const bdy=e.target.closest('.btn-borrar-anio'); if(bdy){ const y=bdy.dataset.year; const emp=bdy.dataset.empresa; const dy=bdy.closest('div').parentElement; const bb=dy.querySelectorAll('button[data-accion="borrar"]'); if(confirm(`¿Borrar ${bb.length} pedidos del año ${y} de ${emp}?`)){ bb.forEach(b=>{ db.collection('pedidos').doc(b.dataset.id).delete().catch(err=>console.warn(err)); }); } }
+      });
+    }
+  }
+
+  if(tbodyActivos){ 
+      tbodyActivos.addEventListener('change', function(e){
+          const i = e.target.closest('.input-importe');
+          const p = e.target.closest('.input-proveedor');
+          const m = e.target.closest('.input-material-activos'); 
+          
+          if(i){
+              const id = i.dataset.id;
+              const val = i.value.replace(',', '.');
+              db.collection('pedidos').doc(id).update({importeCompra: val}).catch(err=>console.warn(err));
+          }
+          if(p){
+              const id = p.dataset.id;
+              const val = p.value;
+              db.collection('pedidos').doc(id).update({proveedor: val}).catch(err=>console.warn(err));
+          }
+          if(m){ 
+              const id = m.dataset.id;
+              const val = m.value;
+              db.collection('pedidos').doc(id).update({material: val}).catch(err=>console.warn(err));
+          }
+      });
+  }
+  if(containerEntregados){
+    containerEntregados.addEventListener('change',function(e){
+      const d=e.target.closest('.input-fecha'); 
+      const m=e.target.closest('.input-material-entregados'); 
+      
+      if(d){ db.collection('pedidos').doc(d.dataset.id).update({fechaRecibido:d.value}).catch(err=>console.warn(err)); }
+      if(m){ 
+          const id = m.dataset.id;
+          const val = m.value;
+          db.collection('pedidos').doc(id).update({material: val}).catch(err=>console.warn(err));
+      }
+    });
+
+    containerEntregados.addEventListener('click',function(e){
+      const b=e.target.closest('.btn-aplicar-cambios');
+      if(!b) return;
+
+      const id = b.dataset.id;
+      const row = b.closest('tr');
+
+      const inputProv = row.querySelector('.input-proveedor');
+      const inputImp = row.querySelector('.input-importe-pendiente');
+
+      const prov = inputProv ? inputProv.value.trim() : '';
+      const impRaw = inputImp ? inputImp.value.trim().replace(',', '.') : '';
+      const imp = parseFloat(impRaw);
+
+      const updates = {};
+      if(prov !== '') updates.proveedor = prov;
+      if(!isNaN(imp) && impRaw !== '') updates.importeCompra = impRaw;
+
+      if(Object.keys(updates).length > 0){
+        db.collection('pedidos').doc(id).update(updates)
+          .then(() => {
+            b.textContent = '✓';
+            setTimeout(() => { b.textContent = 'Aplicar'; }, 1500);
+          })
+          .catch(err => {
+            console.warn(err);
+            alert('Error al guardar');
+          });
+      }
+    });
+
+    containerEntregados.addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b)return; const a=b.dataset.accion; const id=b.dataset.id; if(a==='setEstado'){ const s=b.dataset.estado; db.collection('pedidos').doc(id).update({estado:s}).catch(err=>alert('Error')); } else if(a==='borrar'){ if(confirm('¿Borrar?')) db.collection('pedidos').doc(id).delete().catch(err=>alert('Error')); } });
+  }
+
+  btnCrearSector.addEventListener('click',function(){
+    const n=(nuevoSectorNombre.value||'').trim(); const pw=(nuevoSectorPassword.value||'').trim(); if(!n){alert('Falta nombre');return;} const s=slug(n); if(!s){alert('Nombre no válido');return;}
+    db.collection('sectores').doc(s).set({ nombre:n, slug:s, password:pw, creadoEn:firebase.firestore.FieldValue.serverTimestamp() }).then(()=>{ nuevoSectorNombre.value=''; nuevoSectorPassword.value=''; }).catch(e=>alert('Error: '+e));
+  });
+
+  tbodySectores.addEventListener('click',function(e){
+    const b=e.target.closest('button'); if(!b)return;
+    if(b.classList.contains('copy')){ const l=b.dataset.link; navigator.clipboard.writeText(l).then(()=>{ b.textContent='Copiado'; setTimeout(()=>b.textContent='Copiar enlace',1500); }); return; }
+    if(b.textContent==='Borrar'){ if(confirm('¿Borrar sector?')) db.collection('sectores').doc(b.dataset.slug).delete(); }
+  });
+
+  btnCrearEmpresa.addEventListener('click',function(){ const n=(nuevaEmpresaNombre.value||'').trim().toUpperCase(); if(!n)return; if(empresasCache.some(e=>e.nombre===n)){alert('Ya existe');return;} db.collection('empresas').add({nombre:n}).then(()=>{nuevaEmpresaNombre.value='';}); });
+
+  if(tbodyEmpresas){ tbodyEmpresas.addEventListener('click',function(e){ const b=e.target.closest('button'); if(b && confirm('¿Borrar empresa?')) db.collection('empresas').doc(b.dataset.id).delete(); }); }
+
+  tbodyActivos.addEventListener('click',function(e){
+    const p=e.target.closest('.pill-empresa'); if(p){ const id=p.closest('tr').querySelector('.acciones-pedido button').dataset.id; db.collection('pedidos').doc(id).update({empresa:p.dataset.empresa}); return; }
+    const b=e.target.closest('button'); if(b && b.dataset.accion==='setEstado'){ const d={estado:b.dataset.estado}; if(d.estado==='entregado')d.fechaRecibido=new Date().toLocaleString('es-ES'); db.collection('pedidos').doc(b.dataset.id).update(d); }
+  });
+
+  btnPcAdd.addEventListener('click',function(){ if(!sectorActual){alert('Selecciona sector');return;} const r=(pcRef.value||'').trim(), m=(pcMat.value||'').trim(); if(!r&&!m)return; db.collection('pedidos').add({sector:sectorActual, fechaPedido:new Date().toLocaleString('es-ES'), referencia:r, material:m, estado:'pendiente', creadoEn:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{pcRef.value='';pcMat.value='';}); });
+
+  const ta=document.getElementById('toggleAdminSectores'), ab=document.getElementById('adminSectoresBody'); if(ta&&ab){ ta.addEventListener('click',()=>{ const h=ab.style.display==='none'||!ab.style.display; ab.style.display=h?'block':'none'; ta.querySelector('.chevron').textContent=h?'▲':'▼'; }); }
+
+  // NUEVA LÓGICA: TOGGLE ADMINISTRAR EMPRESAS
+  const tae = document.getElementById('toggleAdminEmpresas');
+  const abe = document.getElementById('adminEmpresasBody');
+  if(tae && abe){
+      tae.addEventListener('click', ()=>{
+          const isHidden = abe.style.display === 'none';
+          abe.style.display = isHidden ? 'block' : 'none';
+          tae.querySelector('.chevron').textContent = isHidden ? '▲' : '▼';
+      });
+  }
+
+  // BÚSQUEDA Y COMPARACIÓN DE PRECIOS (completa)
+  function normalizarTexto(texto) {
+    if (!texto) return '';
+    return texto
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  
+
+// === EXTRACCIÓN ESTRICTA DE MEDIDAS (SOLO PARA COMPARACIÓN DE PRECIOS) ===
+function extraerMedidasClave(texto) {
+  const t = (texto || '').toLowerCase();
+
+  // Métrica: M8, m 8, m-8
+  const m = t.match(/m\s*[-]?\s*(\d{1,3})\b/);
+  const metrica = m ? m[1] : null;
+
+  // Longitud: x10, x 10, ×10
+  const l = t.match(/[x×]\s*(\d{1,4})\b/);
+  const longitud = l ? l[1] : null;
+
+  // Cantidad: prioridad 1 -> unidad explícita (100und / 100 und / 100 uds / 100 pcs ...)
+  let cantidad = null;
+  const c1 = t.match(/\b(\d{1,6})\s*(und|uds|unidades|unidad|pcs|piezas)\b/);
+  if (c1) {
+    cantidad = c1[1];
+  } else {
+    // prioridad 2 -> "caja/pack/paquete/bolsa 100" (sin unidad escrita)
+    const c2 = t.match(/\b(caja|pack|paquete|bolsa)\s*(de\s*)?(\d{1,6})\b/);
+    if (c2) cantidad = c2[3];
+  }
+
+  return { metrica, longitud, cantidad };
+}
+
+function esNumeroRelevante(palabra) {
+    return /^\d+$/.test(palabra) || /^m\d+$/.test(palabra);
+  }
+
+  function contienePalabrasInteligente(textoNormalizado, terminoNormalizado) {
+    if (!terminoNormalizado) return true;
+
+    const palabrasTermino = terminoNormalizado.split(' ').filter(p => p.length > 1);
+    if (palabrasTermino.length === 0) return true;
+
+    const palabrasTexto = textoNormalizado.split(' ');
+
+    return palabrasTermino.every(palabraTermino => {
+      if (esNumeroRelevante(palabraTermino)) {
+        return palabrasTexto.includes(palabraTermino);
+      } else {
+        return palabrasTexto.some(palabraTexto => 
+          palabraTexto === palabraTermino || 
+          palabraTexto.startsWith(palabraTermino) ||
+          palabraTermino.startsWith(palabraTexto)
+        );
+      }
+    });
+  }
+
+  function compararPrecios(){
+    const term = searchMaterial.value.trim();
+    const numYears = parseInt(document.getElementById('filtroAnios').value) || 0;
+    const provFilter = (document.getElementById('filtroProveedor').value || '').trim().toLowerCase();
+    const currentYear = new Date().getFullYear();
+    
+    resultadosComparacion.innerHTML = '';
+    
+    const lista = globalPedidosEntregados;
+
+    if(term.length < 2) {
+      resultadosComparacion.innerHTML = '<div style="font-size:11px;color:#9ca3af;padding:6px 0;">Introduce al menos 2 caracteres para buscar.</div>';
+      return;
+    }
+
+    const termNorm = normalizarTexto(term);
+
+    
+    
+    // Palabras clave (tolerancia en escritura): deben estar TODAS presentes para considerar el mismo material.
+    const termWords = termNorm.split(' ').filter(w => w && !/^\d+$/.test(w));
+const termMed = extraerMedidasClave(term);
+const coincidencias = lista.filter(p => {
+      const matNorm = normalizarTexto(p.mat);
+      const refNorm = normalizarTexto(p.ref);
+      const textoCompleto = matNorm + ' ' + refNorm;
+      
+
+const itemMed = extraerMedidasClave((p.mat || '') + ' ' + (p.ref || ''));
+
+// CERO tolerancia numérica: si el término incluye métrica/longitud/cantidad, debe coincidir EXACTO.
+const metricaOk  = !termMed.metrica  || (termMed.metrica  === itemMed.metrica);
+const longitudOk = !termMed.longitud || (termMed.longitud === itemMed.longitud);
+const cantidadOk = !termMed.cantidad || (termMed.cantidad === itemMed.cantidad);
+const prov = (p.proveedor || '').toLowerCase();
+      const yearOk = numYears === 0 || p.fecha.getFullYear() >= (currentYear - numYears + 1);
+      const provOk = provFilter === '' || prov.includes(provFilter);
+
+      const coincideTexto = (termWords.length === 0 || termWords.every(w => textoCompleto.includes(w)));
+
+      return coincideTexto && yearOk && provOk && metricaOk && longitudOk && cantidadOk;
+    });
+
+    if(coincidencias.length === 0) {
+      let msg = `No se encontraron pedidos con "${term}"`;
+      if (numYears > 0) msg += ` en los últimos ${numYears} año${numYears > 1 ? 's' : ''}`;
+      if (provFilter) msg += ` del proveedor "${document.getElementById('filtroProveedor').value}"`;
+      resultadosComparacion.innerHTML = `<div style="font-size:11px;color:#9ca3af;padding:6px 0;">${msg}.</div>`;
+      return;
+    }
+
+    let html = `
+      <h4 style="font-size:12px; font-weight:600; margin-top:12px; margin-bottom:6px;">
+        Historial de Transacciones (${coincidencias.length} pedido${coincidencias.length !== 1 ? 's' : ''})
+      </h4>
+      <table class="tabla-resumen-empresas">
+        <thead>
+          <tr>
+            <th style="width:100px;">Fecha</th>
+            <th style="width:120px;">Proveedor</th>
+            <th style="width:70px;">Importe</th>
+            <th>Material / Referencia</th>
+            <th style="width:100px;">Empresa</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    const historialOrdenado = coincidencias.sort((a, b) => b.fecha - a.fecha);
+
+    historialOrdenado.forEach(p => {
+      const fechaStr = p.fecha.toLocaleDateString('es-ES');
+      const importeStr = p.importe > 0 ? p.importe.toFixed(2).replace('.', ',') + ' €' : '-';
+
+      const matFull = (p.mat || '').trim();
+      const refFull = (p.ref || '').trim();
+      const matDisplay = matFull || refFull;
+
+      let materialCellComp;
+      if(matDisplay.length > 80 || matDisplay.includes('\n')) {
+        const shortText = matDisplay.length > 80 ? matDisplay.substring(0, 77) + '...' : matDisplay.split('\n')[0] + '...';
+        materialCellComp = `
+          <div class="mat-resumen">
+            <span class="mat-text">${shortText}</span>
+            <button type="button" class="btn-mini-mat">Ver</button>
+          </div>`;
+      } else {
+        materialCellComp = matDisplay;
+      }
+
+      html += `
+        <tr>
+          <td>${fechaStr}</td>
+          <td>${p.proveedor || 'N/D'}</td>
+          <td><strong>${importeStr}</strong></td>
+          <td>${materialCellComp}</td>
+          <td>${p.empresa || ''}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    resultadosComparacion.innerHTML = html;
+  }
+
+  btnCompararPrecios.addEventListener('click', compararPrecios);
+
+  searchMaterial.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      compararPrecios();
+    }
+  });
+
+  btnResetComparacion.addEventListener('click', function(){
+    searchMaterial.value = '';
+    document.getElementById('filtroAnios').value = '0';
+    document.getElementById('filtroProveedor').value = '';
+    resultadosComparacion.innerHTML = '';
+    searchMaterial.focus();
+  });
+
+  resultadosComparacion.addEventListener('click', function(e){
+    const b = e.target.closest('.btn-mini-mat');
+    if(!b) return;
+
+    const w = b.closest('.mat-resumen');
+    const s = w.querySelector('.mat-text');
+    const full = w.parentNode.innerText.trim().replace('Ver', '').replace('Ocultar', '').trim(); // fallback simple
+
+    if(b.textContent === 'Ver'){
+      s.textContent = full;
+      b.textContent = 'Ocultar';
+    } else {
+      const short = full.length > 80 ? full.substring(0, 77) + '...' : full.split('\n')[0] + '...';
+      s.textContent = short;
+      b.textContent = 'Ver';
+    }
+  });
+
+  // RESUMEN Y GRÁFICOS
+  const rt=document.getElementById('resTipo'), rm=document.getElementById('resMes'), ra=document.getElementById('resAnio'), tbr=document.getElementById('tbodyResumenEmpresas'), ttg=document.getElementById('resumenTotalGlobal'), bcr=document.getElementById('btnCopiarResumen'), bir=document.getElementById('btnImprimirResumen'), rmw=document.getElementById('resMesWrapper');
+  let ur=null, ch=null;
+  let empresasNombres=[];
+
+  function actualizarGraficosYResumenes(){
+    empresasNombres = empresasCache.map(e => e.nombre);
+    
+    const pr = globalPedidosEntregados;
+    const a=Array.from(new Set(pr.map(p=>p.fecha.getFullYear()))).sort((x,y)=>y-x);
+    
+    ra.innerHTML=''; 
+    if(!a.length){
+      const o=document.createElement('option');o.value=new Date().getFullYear();o.textContent=o.value;ra.appendChild(o);
+    } else {
+      a.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ra.appendChild(o);}); 
+    }
+    
+    ra.value = new Date().getFullYear();
+
+    renderResumenTabla();
+  }
+
+  function ugr(){
+    try{
+      const canvas = document.getElementById('chartEmpresas');
+      if(!canvas || typeof Chart === 'undefined') return;
+      if(ch){ ch.destroy(); ch = null; }
+
+      let legendDiv = document.getElementById('customLegend');
+      if(!legendDiv){
+        legendDiv = document.createElement('div');
+        legendDiv.id = 'customLegend';
+        legendDiv.className = 'custom-legend';
+        canvas.parentNode.appendChild(legendDiv);
+      }
+      legendDiv.innerHTML = '';
+
+      if(!ur || !ur.datos || !ur.datos.length){ return; }
+
+      const labels = [];
+      const data = [];
+      ur.datos.forEach(function(item){
+        if(item.importe > 0){
+          labels.push(item.empresa);
+          data.push(item.importe);
+        }
+      });
+
+      if(!labels.length) return;
+
+      const colorMap = { 'SKLUM': '#111827', 'THE MASIE': '#3b82f6', 'WOODS': '#f59e0b', 'SIN EMPRESA': '#ef4444' };
+      const vibrantColors = ['#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#d946ef', '#14b8a6', '#f43f5e'];
+      
+      const background = labels.map((label, i) => {
+        return colorMap[label.toUpperCase()] || vibrantColors[i % vibrantColors.length];
+      });
+
+      ch = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut', 
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: background,
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: 10 },
+          plugins: {
+            legend: { display: false }, 
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) label += ': ';
+                        label += new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(context.raw);
+                        return label;
+                    }
+                }
+            }
+          }
+        }
+      });
+
+      labels.forEach((label, i) => {
+        const val = data[i];
+        const color = background[i];
+        const valStr = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val);
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<div class="legend-color" style="background:${color}"></div><span class="legend-text" title="${label}">${label}</span><span class="legend-val">${valStr}</span>`;
+        legendDiv.appendChild(item);
+      });
+
+    }catch(e){ console.error('Error gráfico', e); }
+  }
+
+  function renderResumenTabla(){ 
+    tbr.innerHTML=''; ttg.textContent=''; ur=null; 
+    const pr = globalPedidosEntregados;
+    if(!pr.length){tbr.innerHTML='<tr><td colspan="2">Sin datos.</td></tr>';return;} 
+    
+    const t=rt.value;
+    const y=parseInt(ra.value)||new Date().getFullYear();
+    const m=parseInt(rm.value); 
+    const mp={}; 
+    let tg=0; 
+    
+    pr.forEach(p=>{ 
+        const py=p.fecha.getFullYear(), pm=p.fecha.getMonth()+1; 
+        if(t==='mensual'){if(py!==y||pm!==m)return;}
+        else{if(py!==y)return;} 
+        
+        mp[p.empresa]=(mp[p.empresa]||0)+p.importe; 
+        tg+=p.importe; 
+    }); 
+    
+    const k=Object.keys(mp); 
+    if(!k.length){tbr.innerHTML='<tr><td colspan="2">Sin datos periodo.</td></tr>'; ugr(); return;} 
+    
+    const oe=[]; 
+    empresasNombres.forEach(n=>{if(mp.hasOwnProperty(n))oe.push(n);}); 
+    k.forEach(n=>{if(n!=='Sin empresa'&&oe.indexOf(n)===-1)oe.push(n);}); 
+    if(mp['Sin empresa']&&oe.indexOf('Sin empresa')===-1)oe.push('Sin empresa'); 
+    
+    oe.forEach(n=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${n}</td><td>${mp[n].toFixed(2).replace('.',',')} €</td>`;
+        tbr.appendChild(tr);
+    }); 
+    
+    ttg.textContent=`Total: ${tg.toFixed(2).replace('.',',')} €`; 
+    ur={tipo:t,mes:m,anio:y,datos:oe.map(n=>({empresa:n,importe:mp[n]})),total:tg}; 
+    
+    ugr(); 
+  }
+
+  rt.addEventListener('change',()=>{rmw.style.display=rt.value==='mensual'?'block':'none';renderResumenTabla();}); 
+  rm.addEventListener('change',renderResumenTabla); 
+  ra.addEventListener('change',renderResumenTabla);
+  
+  rm.value=String(new Date().getMonth()+1);
+  
+  // NUEVA LÓGICA: BOTÓN COPIAR RESUMEN ARREGLADO
+  if(bcr){
+      bcr.addEventListener('click', function(){
+        if(!ur || !ur.datos || !ur.datos.length) return;
+        
+        let texto = `RESUMEN GASTOS ${ur.tipo.toUpperCase()} (${ur.tipo==='mensual'?nombreMes(ur.mes):''} ${ur.anio})\n\n`;
+        ur.datos.forEach(d => {
+            texto += `${d.empresa}: ${d.importe.toFixed(2).replace('.',',')} €\n`;
+        });
+        texto += `\nTOTAL: ${ur.total.toFixed(2).replace('.',',')} €`;
+
+        navigator.clipboard.writeText(texto).then(()=>{
+            const original = bcr.textContent;
+            bcr.textContent = '¡Copiado!';
+            setTimeout(()=> bcr.textContent = original, 2000);
+        }).catch(err => console.error('Error al copiar: ', err));
+      });
+  }
+
+  // LOGICA DEL BOTON IMPRIMIR
+  if (bir) {
+    bir.addEventListener('click', function () {
+      const printArea = document.getElementById('print-area');
+      
+      const tipo = document.getElementById('resTipo').value; 
+      const anio = document.getElementById('resAnio').value;
+      const mesSelect = document.getElementById('resMes');
+      const mesNombre = mesSelect.options[mesSelect.selectedIndex].text;
+      const tituloPrincipal = tipo === 'mensual' ? 'INFORME DE GASTOS MENSUALES' : 'INFORME DE GASTOS ANUALES';
+      const subtitulo = tipo === 'mensual' ? `${mesNombre} ${anio}` : `Año ${anio}`;
+
+      // TABLA
+      if(!ur || !ur.datos || ur.datos.length === 0) {
+        alert("No hay datos para imprimir.");
+        return;
+      }
+      
+      let tableRows = '';
+      ur.datos.forEach(d => {
+        tableRows += `
+          <tr>
+            <td>${d.empresa}</td>
+            <td>${d.importe.toFixed(2).replace('.', ',')} €</td>
+          </tr>
+        `;
+      });
+      const totalValue = ur.total.toFixed(2).replace('.', ',') + ' €';
+
+      // GRÁFICO Y LEYENDA
+      const canvas = document.getElementById('chartEmpresas');
+      let imgChartHtml = '';
+      if(canvas) {
+          const dataURL = canvas.toDataURL('image/png');
+          imgChartHtml = `<img src="${dataURL}" style="max-width:300px; max-height:300px;">`;
+      }
+      
+      let leyendaHtml = '';
+      const legendDiv = document.getElementById('customLegend');
+      if(legendDiv && legendDiv.children.length > 0) {
+         Array.from(legendDiv.children).forEach(item => {
+             const color = item.querySelector('.legend-color').style.background;
+             const text = item.querySelector('.legend-text').textContent;
+             leyendaHtml += `
+              <div class="print-legend-item">
+                <div class="print-legend-dot" style="background:${color}"></div>
+                <span>${text}</span>
+              </div>
+             `;
+         });
+      }
+
+      // HTML FINAL
+      printArea.innerHTML = `
+        <div class="print-header">
+          <div class="print-logo-container">
+             <img src="./sklum_icon.ico" alt="Logo">
+          </div>
+          <div class="print-titles">
+             <h1>${tituloPrincipal}</h1>
+             <h2>${subtitulo}</h2>
+          </div>
+        </div>
+        
+        <div class="print-divider-thick"></div>
+
+        <table class="print-table">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+
+        <div class="print-total-box">
+           <span class="print-total-label">Total ${tipo === 'mensual' ? 'Mensual' : 'Anual'}</span>
+           <span class="print-total-value">${totalValue}</span>
+        </div>
+
+        <div class="print-chart-separator">
+           <span class="print-chart-title">Distribución visual del gasto</span>
+        </div>
+
+        <div class="print-chart-wrapper">
+           ${imgChartHtml}
+           <div class="print-legend">
+              ${leyendaHtml}
+           </div>
+        </div>
+
+        <div class="print-footer">
+          Generado el ${new Date().toLocaleString()}
+        </div>
+      `;
+
+      // IMPRIMIR
+      setTimeout(() => window.print(), 100);
+    });
+  }
+
+  // Llamadas iniciales
+  suscribirSectores(); 
+  suscribirEmpresas(); 
+  suscribirPedidosGlobal();
+</script>
+</body>
+</html>
